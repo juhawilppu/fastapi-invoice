@@ -1,0 +1,12 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:16
+    container_name: fastapi_db
+    restart: always
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: appdb
+    ports:
+      - "5439:5432"
