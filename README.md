@@ -9,7 +9,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install fastapi uvicorn alembic
 alembic upgrade head
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 ```
 
 ## Try it out
