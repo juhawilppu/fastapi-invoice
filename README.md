@@ -7,7 +7,7 @@ A simple project to test out how modern Python works with FastAPI.
 ```
 python3 -m venv .venv
 source .venv/bin/activate
-pip install fastapi uvicorn alembic
+pip install fastapi uvicorn alembic psycopg2
 alembic upgrade head
 uvicorn app.main:app --reload
 ```
