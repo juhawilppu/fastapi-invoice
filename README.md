@@ -4,6 +4,11 @@ A simple project to test out how modern Python works with FastAPI.
 
 ## Run locally
 
+Start services
+```
+docker compose up -d
+```
+
 ```
 python3 -m venv .venv
 source .venv/bin/activate
