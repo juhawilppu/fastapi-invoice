@@ -1,15 +1,20 @@
-# FastAPI test
+# fastkafka-lab
 
-A simple project to test out how modern Python works with FastAPI.
+A small project to explore Kafka and event-driven architecture.
 
-## Run locally
+## 🧩 Architecture
+- `fastapi-producer` – exposes `/events` endpoint and publishes to Kafka
+- `consumer` - reads and processes events
+- `docker-compose.yml` - runs Kafka and ZooKeeper services
 
-Start services
+## 🚀 Run locally
+
+Start Kafka and ZooKeeper
 ```
 docker compose up -d
 ```
 
-## Start producer
+### Producer
 
 ```
 cd fastapi-producer
@@ -20,7 +25,7 @@ alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
-## Start consumer
+### Consumer
 
 ```
 cd consumer
@@ -30,10 +35,13 @@ pip install -r requirements.txt
 python consumer.py
 ```
 
-## Try it out
+## 🧪 Try it out
+
+This will submit 100 events to the queue.
 
 ```
-for i in {1..10}; do
+```
+for i in {1..100}; do
   curl -X POST localhost:8000/events \
        -H "Content-Type: application/json" \
        -d "{\"id\": \"$i\", \"user_id\": \"test-event-$i\", \"amount\": 100, \"currency\": \"USD\", \"idempotency_key\": \"key-$i\"}"
@@ -41,6 +49,12 @@ for i in {1..10}; do
 done
 ```
 
-## API docs
+```
 
-Once running, open: http://localhost:8000/docs
+## 📘 API docs
+
+http://localhost:8000/docs
+
+## 🧠 Goal
+
+I've worked with queues such as RabbitMQ and AWS SQS, but Kafka always felt mysterious. This project was my attempt to finally understand what Kafka does.
