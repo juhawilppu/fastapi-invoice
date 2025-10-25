@@ -12,7 +12,7 @@ docker compose up -d
 ```
 python3 -m venv .venv
 source .venv/bin/activate
-pip install fastapi uvicorn alembic psycopg2
+pip install fastapi uvicorn alembic psycopg2 kafka-python
 alembic upgrade head
 uvicorn app.main:app --reload
 ```

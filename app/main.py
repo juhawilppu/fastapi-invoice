@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.routers import invoices
+from app.routers import events
 
 app = FastAPI()
 
@@ -10,3 +11,4 @@ def read_root():
 
 
 app.include_router(invoices.router)
+app.include_router(events.router)
