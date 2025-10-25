@@ -1,13 +1,14 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from kafka import KafkaProducer
+from typing import Optional
 import json
 import os
 import uuid
 
 
 class Event(BaseModel):
-    idempotency_key: str
+    idempotency_key: Optional[str] = None
     user_id: str
     amount: int
     currency: str
@@ -26,11 +27,12 @@ def submit_event(event: Event):
     topic = os.getenv("KAFKA_TOPIC", "invoice-events")
 
     try:
+        idempotency_key = event.idempotency_key or str(uuid.uuid4())
         payload = event.dict()
-        payload["_idempotency_key"] = event.idempotency_key
+        payload["_idempotency_key"] = idempotency_key
 
         # send the idempotency key as the Kafka message key (affects partitioning and works with log compaction)
-        future = producer.send(topic, key=event.idempotency_key, value=payload)
+        future = producer.send(topic, key=idempotency_key, value=payload)
         future.get(timeout=10)
     finally:
         producer.flush()
