@@ -1,4 +1,4 @@
-# fastkafka-lab
+# invoice-pdf-flux
 
 A small project to explore Kafka and event-driven architecture.
 
@@ -40,12 +40,29 @@ python consumer.py
 This will submit 100 events to the queue.
 
 ```
-```
 for i in {1..100}; do
-  curl -X POST localhost:8000/events \
-       -H "Content-Type: application/json" \
-       -d "{\"id\": \"$i\", \"user_id\": \"test-event-$i\", \"amount\": 100, \"currency\": \"USD\", \"idempotency_key\": \"key-$i\"}"
-  echo
+    curl -X 'POST' \
+    'http://localhost:8000/invoices' \
+    -H 'accept: application/json' \
+    -H 'Content-Type: application/json' \
+    -d '{
+    "order_id": "order-$i",
+    "customer_id": "36b22c5c-c6ac-44f7-8b6e-5a5a956fae7b",
+    "rows": [
+        {
+        "id": "bbd50bde-1955-442b-a86d-096bb57458f8",
+        "name": "Potato, Yukon Gold",
+        "quantity": 143,
+        "unit_price": 0.17
+        },
+        {
+        "id": "56c2aa1f-ebc2-4fed-b2ee-576a6bc55aee",
+        "name": "Carrot, Imperator",
+        "quantity": 203,
+        "unit_price": 0.21
+        }
+    ]
+    }'
 done
 ```
 
