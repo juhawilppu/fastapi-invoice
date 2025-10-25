@@ -9,7 +9,9 @@ Start services
 docker compose up -d
 ```
 
+## Start producer
 ```
+cd fastapi-producer
 python3 -m venv .venv
 source .venv/bin/activate
 pip install fastapi uvicorn alembic psycopg2 kafka-python
