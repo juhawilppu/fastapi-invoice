@@ -2,6 +2,10 @@ from confluent_kafka import Consumer, KafkaException
 import json
 from decimal import Decimal, ROUND_HALF_UP
 from pydantic import BaseModel, ValidationError
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
 
 conf = {
     'bootstrap.servers': 'localhost:9092',
@@ -70,6 +74,57 @@ def calculate_invoice_totals(invoice):
     return invoice_data
 
 
+def make_invoice_pdf(invoice_data):
+    filename = f"./invoices/invoice_{invoice_data['order_id']}.pdf"
+    doc = SimpleDocTemplate(filename, pagesize=A4)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Header
+    elements.append(Paragraph(f"Invoice #{invoice_data['order_id']}", styles['Heading1']))
+    elements.append(Paragraph(f"Customer ID: {invoice_data['customer_id']}", styles['Normal']))
+    elements.append(Paragraph(f"VAT Rate: {invoice_data['vat_rate']}", styles['Normal']))
+
+    # Table header
+    table_data = [['Item', 'Quantity', 'Unit Price', 'Total Excl. VAT', 'VAT', 'Total Incl. VAT']]
+    
+    # Add rows
+    for row in invoice_data['rows']:
+        table_data.append([
+            row['name'],
+            str(row['quantity']),
+            row['unit_price_excl_vat'],
+            row['line_total_excl_vat'],
+            row['vat_14%'],
+            row['line_total_incl_vat']
+        ])
+    
+    # Add totals
+    table_data.append([
+        'Total', '', '',
+        invoice_data['totals']['total_excl_vat'],
+        invoice_data['totals']['total_vat'],
+        invoice_data['totals']['total_incl_vat']
+    ])
+
+    # Create and style the table
+    table = Table(table_data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 14),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    
+    elements.append(table)
+    doc.build(elements)
+    
+    return filename
+
+
 try:
     while True:
         class InvoiceRow(BaseModel):
@@ -105,6 +160,9 @@ try:
 
         print(f"Handling invoice: {invoice.order_id}")
         invoice_data = calculate_invoice_totals(invoice)
-        print("Processed Invoice:", invoice_data)
+        print("Invoice processed")
+        pdf = make_invoice_pdf(invoice_data)
+        print(f"PDF saved as {pdf}")
+
 finally:
     consumer.close()
