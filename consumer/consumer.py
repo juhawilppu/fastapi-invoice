@@ -6,6 +6,8 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
+from minio import Minio
+import os
 
 conf = {
     'bootstrap.servers': 'localhost:9092',
@@ -125,6 +127,26 @@ def make_invoice_pdf(invoice_data):
     return filename
 
 
+def store_pdf_to_minio(pdf_path):
+    client = Minio(
+        "localhost:9000",
+        access_key="minioadmin",
+        secret_key="minioadmin",
+        secure=False
+    )
+
+    bucket_name = "invoices"
+
+    # Create bucket if it doesn't exist
+    if not client.bucket_exists(bucket_name):
+        client.make_bucket(bucket_name)
+
+    # Extract filename from path and upload
+    filename = os.path.basename(pdf_path)
+    client.fput_object(bucket_name, filename, pdf_path)
+    print(f"Uploaded {filename} to MinIO bucket {bucket_name}")
+
+
 try:
     while True:
         class InvoiceRow(BaseModel):
@@ -162,6 +184,8 @@ try:
         invoice_data = calculate_invoice_totals(invoice)
         print("Invoice processed")
         pdf = make_invoice_pdf(invoice_data)
+        store_pdf_to_minio(pdf)
+
         print(f"PDF saved as {pdf}")
 
 finally:
