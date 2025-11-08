@@ -1,23 +1,40 @@
-# invoice-pdf-flux
+# fastapi-kafka-demo
 
-A small project to explore Kafka and event-driven architecture.
+Simple project to try out FastAPI and Kafka.
+
+A Python consumer handles an invoice which is stored as a PDF to minio with metadata in PostgreSQL. FastAPI exposes the stored invoices.
 
 ## 🧩 Architecture
-- `fastapi-producer` – exposes `/events` endpoint and publishes to Kafka
-- `consumer` - reads and processes events
-- `docker-compose.yml` - runs Kafka and ZooKeeper services
+- `fastapi-app` – REST API and Kafka producer  
+- `consumer` – Kafka consumer that processes events  
+- `infra` – Docker setup for Kafka, PostgreSQL, and MinIO
+
+```mermaid
+flowchart LR
+    F([fastapi-app]):::app -->|send invoice event| K[(Kafka)]:::infra
+    K -->|consume| C([consumer]):::app
+    F --> P[(PostgreSQL)]:::infra
+    F --> M[(MinIO)]:::infra
+    C --> P
+    C --> M
+
+    classDef app fill:#d0ebff,stroke:#1971c2,color:#000,stroke-width:1px;
+    classDef infra fill:#f8f9fa,stroke:#868e96,color:#000,stroke-width:1px;
+
+```
 
 ## 🚀 Run locally
 
-Start Kafka and ZooKeeper
-```
+Start infra (Kafka, PostgreSQL, etc.)
+```bash
+cd infra
 docker compose up -d
 ```
 
-### Producer
+### fastapi-app
 
-```
-cd fastapi-producer
+```bash
+cd fastapi-app
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -25,9 +42,9 @@ alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
-### Consumer
+### consumer
 
-```
+```bash
 cd consumer
 python3 -m venv .venv
 source .venv/bin/activate
@@ -39,7 +56,7 @@ python consumer.py
 
 This will submit 10 events to the queue.
 
-```
+```bash
 for i in {1..10}; do
     curl -X 'POST' \
     'http://localhost:8000/invoices' \
